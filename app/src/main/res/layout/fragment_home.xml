@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_animation"
-    tools:context=".presentation.ui.home.HomeFragment">
+    tools:context=".presentation.ui.home.HomeFragment"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/heading"
@@ -14,53 +15,120 @@
         android:layout_margin="16dp"
         android:gravity="start"
         android:text="@string/home_page_heading"
-        android:textColor="@drawable/text_background"
-        android:textSize="40sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textColor="@color/white"
+        android:fontFamily="@font/custom_font"
+        android:textSize="40sp" />
 
     <TextView
         android:id="@+id/sub_heading"
         style="@style/TextAppearance.AppCompat.Large"
+        android:fontFamily="@font/custom_font"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:gravity="start"
         android:text="@string/home_page_sub_heading"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/heading" />
+        android:textColor="@color/white" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/wallet_btn"
-        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton.Icon"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/balance_tv"
+            style="@style/TextAppearance.AppCompat.Large"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/custom_font"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:layout_weight="1"
+            tools:text="0 SOL" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/wallet_btn"
+            style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:backgroundTint="@color/dark_gray"
+            android:fontFamily="@font/custom_font"
+            android:gravity="center"
+            android:textColor="@color/white"
+            app:cornerRadius="10dp"
+            app:icon="@drawable/baseline_circle_24"
+            app:iconTint="@color/red"
+            tools:text="Select Wallet" />
+
+        <ImageView
+            android:id="@+id/copy_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:contentDescription="To copy wallet address"
+            android:src="@drawable/baseline_content_copy_24"
+            android:visibility="gone"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/gm_button"
+        android:layout_width="135dp"
+        android:layout_height="147dp"
+        android:backgroundTint="@color/dark_gray"
+        android:fontFamily="@font/custom_font"
+        android:gravity="center"
+        android:padding="16dp"
+        android:layout_marginTop="50dp"
+        android:text="@string/gm"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="24dp"
+        app:cornerRadius="1500dp"
+        android:layout_gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/gm_count_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:backgroundTint="@color/black"
+        android:fontFamily="@font/custom_font"
         android:gravity="center"
+        android:padding="16dp"
+        android:text="@string/_0_gm"
+        android:visibility="invisible"
         android:textColor="@color/white"
-        app:cornerRadius="10dp"
-        app:icon="@drawable/baseline_circle_24"
-        app:iconTint="@color/red"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/copy_btn"
-        app:layout_constraintTop_toBottomOf="@id/sub_heading"
-        tools:text="Select Wallet" />
+        android:textSize="20sp"
+        android:layout_gravity="center_horizontal" />
 
     <ImageView
-        android:id="@+id/copy_btn"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_margin="16dp"
-        android:contentDescription="To copy wallet address"
-        android:src="@drawable/baseline_content_copy_24"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/wallet_btn"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/wallet_btn"
-        app:tint="#14F195" />
+        android:id="@+id/refresh_button"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:visibility="invisible"
+        android:contentDescription="@string/to_refresh_gm_count"
+        android:src="@drawable/baseline_refresh_24" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/airdrop_btn"
+        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_gravity="center_horizontal"
+        android:backgroundTint="@color/dark_gray"
+        android:fontFamily="@font/custom_font"
+        android:gravity="center"
+        android:text="@string/airdrop_sol"
+        android:textColor="@color/white"
+        app:cornerRadius="10dp"
+        app:icon="@drawable/baseline_water_drop_24"
+        app:iconTint="@color/white" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/build_dapps_btn"
@@ -68,41 +136,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="100dp"
+        android:layout_gravity="center_horizontal"
         android:backgroundTint="@drawable/text_background"
+        android:fontFamily="@font/custom_font"
         android:gravity="center"
         android:text="@string/build_mobile_dapps"
+        android:textColor="@color/white"
         app:cornerRadius="10dp"
         app:icon="@drawable/baseline_twitter_24"
-        app:iconTint="#00aced"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:iconTint="#00aced" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/airdrop_btn"
-        style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/gray"
-        android:gravity="center"
-        android:text="@string/airdrop_sol"
-        app:cornerRadius="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/balance_tv"
-        style="@style/TextAppearance.AppCompat.Large"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:gravity="center"
-        android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/airdrop_btn"
-        tools:text="0 SOL" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

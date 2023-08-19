@@ -6,7 +6,7 @@
         android:centerX="50%"
         android:centerY="100%"
         android:startColor="#010912"
-        android:endColor="#31125d"
-        android:centerColor="#010e1d"
+        android:endColor="#03A9F4"
+        android:centerColor="#3F51B5"
         android:tileMode="clamp"/>
 </shape>

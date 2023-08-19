@@ -84,6 +84,10 @@ class HomeFragment : Fragment() {
             }
         }
 
+        binding.gmButton.setOnClickListener {
+            // TODO: send gm using gm-maker program
+        }
+
         binding.buildDappsBtn.setOnClickListener {
             requireContext().openInBrowser(TWITTER_SHARE_URL)
         }
@@ -145,6 +149,10 @@ class HomeFragment : Fragment() {
         binding.airdropBtn.setBackgroundColor(
             ContextCompat.getColor(requireContext(), R.drawable.text_background as Int),
         )
+
+        binding.gmButton.setBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.black as Int),
+        )
     }
 
     private fun disconnectWallet() {
@@ -156,7 +164,7 @@ class HomeFragment : Fragment() {
             ContextCompat.getColor(requireContext(), R.color.white),
         )
         binding.walletBtn.setBackgroundColor(
-            ContextCompat.getColor(requireContext(), R.color.black),
+            ContextCompat.getColor(requireContext(), R.color.dark_gray),
         )
 
         binding.walletBtn.iconTint =
@@ -164,6 +172,10 @@ class HomeFragment : Fragment() {
 
         binding.airdropBtn.setBackgroundColor(
             ContextCompat.getColor(requireContext(), R.color.dark_gray),
+        )
+
+        binding.gmButton.setBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.dark_gray as Int),
         )
     }
 

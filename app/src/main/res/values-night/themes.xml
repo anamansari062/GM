@@ -14,4 +14,8 @@
         <item name="colorPrimary">@color/white</item>
         <item name="colorSecondary">@color/teal</item>
     </style>
+
+    <style name="CustomFontTextViewStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/custom_font</item>
+    </style>
 </resources>
