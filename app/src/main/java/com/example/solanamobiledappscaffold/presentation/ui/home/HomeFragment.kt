@@ -15,12 +15,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.solanamobiledappscaffold.R
+import com.example.solanamobiledappscaffold.common.Constants
 import com.example.solanamobiledappscaffold.common.Constants.TWITTER_SHARE_URL
 import com.example.solanamobiledappscaffold.common.Constants.formatAddress
 import com.example.solanamobiledappscaffold.databinding.FragmentHomeBinding
 import com.example.solanamobiledappscaffold.presentation.ui.extensions.copyToClipboard
 import com.example.solanamobiledappscaffold.presentation.ui.extensions.openInBrowser
 import com.example.solanamobiledappscaffold.presentation.ui.extensions.showSnackbar
+import com.example.solanamobiledappscaffold.presentation.ui.extensions.showSnackbarWithAction
 import com.example.solanamobiledappscaffold.presentation.utils.StartActivityForResultSender
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -85,7 +87,15 @@ class HomeFragment : Fragment() {
         }
 
         binding.gmButton.setOnClickListener {
-            // TODO: send gm using gm-maker program
+            viewModel.uiState.value.wallet?.let {
+                viewModel.sendGm(intentSender)
+            } ?: view.showSnackbar(
+                "Can't say gm without wallet!",
+            )
+        }
+
+        binding.refreshButton.setOnClickListener {
+            viewModel.fetchGmCount()
         }
 
         binding.buildDappsBtn.setOnClickListener {
@@ -119,15 +129,33 @@ class HomeFragment : Fragment() {
                         )
                     }
 
+                    uiState.transactionID?.let {
+                        requireView().showSnackbarWithAction("gm. done", "View") {
+                            requireContext().openInBrowser(Constants.getSolanaExplorerUrl(it))
+                        }
+                    }
+
+                    uiState.gmCount?.let {
+                        updateGmCount(it)
+                    }
+
                     // TODO: show snackbar, extension
-//                    uiState.error.let {
-//                        requireView().showSnackbar(
-//                            it,
-//                        )
-//                    }
+                    uiState.error?.let {
+                        requireView().showSnackbar(
+                            it,
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private fun updateGmCount(count: Int) {
+        binding.gmCountTv.text = String.format(
+            count.toString(),
+        )
+        binding.gmCountTv.visibility = View.VISIBLE
+        binding.refreshButton.visibility = View.VISIBLE
     }
 
     private fun connectWallet(publicKey: String) {

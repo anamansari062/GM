@@ -9,29 +9,87 @@ describe("gm-maker", () => {
   anchor.setProvider(provider)
 
   const program = anchor.workspace.GmMaker as Program<GmMaker>;
+  const author = provider.wallet.publicKey;
 
-  it("Is initialized!", async () => {
+  // it("create pda", async () => {
+
+  //     // Convert the author PublicKey instance to a Uint8Array
+  //   const authorBuffer = author.toBuffer();
+
+  //   // Create a Uint8Array from the author buffer
+  //   const encodedAuthor = new Uint8Array(authorBuffer);
+
+  //     // Program Derived Address for the counter account
+  //   const [userPDA1, userBump1] = anchor.web3.PublicKey.findProgramAddressSync(
+  //         [
+  //             encode("user"),
+  //             encodedAuthor
+  //         ],
+  //         new PublicKey("CDDmdPko2irM8Xzgdo2XMHTNW8HFsL8Ta7NCHAZ6Z5Wq")
+  //     );
+
+  //   console.log(userPDA1)
+
+  // })
+
+  it("Initializing user account and saying gm!", async () => {
+    // Convert the author PublicKey instance to a Uint8Array
+    const authorBuffer = author.toBuffer();
+
+    // Create a Uint8Array from the author buffer
+    const encodedAuthor = new Uint8Array(authorBuffer);
+
     // Program Derived Address for the counter account
-    const [counterPDA, _] = anchor.web3.PublicKey.findProgramAddressSync(
+    const [userPDA, userBump] = anchor.web3.PublicKey.findProgramAddressSync(
           [
-              encode("gm_counter"),
+              encode("user"),
+              encodedAuthor
           ],
-          new PublicKey("354LDN9wip3V2yNrmNkv2xsgvkAN2yQK6R4HvszbB431")
+          new PublicKey("CDDmdPko2irM8Xzgdo2XMHTNW8HFsL8Ta7NCHAZ6Z5Wq")
       );
 
-    const tx = await program.methods
-        .sendGm()
+
+    // Sending the transaction
+    const txUser = await program.methods
+        .createUser()
         .accounts({
-            author: provider.wallet.publicKey,
-            counter: counterPDA,
+            author: author,
+            user: userPDA,
             systemProgram: anchor.web3.SystemProgram.programId
         })
         .rpc();
 
-    // Fetching the counter account
+    // Fetching user account
+    var userAccount = await program.account.user.fetch(userPDA);
+
+    console.log("User creation successful: https://solana.fm/tx/" + txUser + "?cluster=devnet-solana");
+    console.log(userAccount)
+
+    // Program Derived Address for the counter account
+    const [counterPDA, counterBump] = anchor.web3.PublicKey.findProgramAddressSync(
+          [
+              encode("gm_counter"),
+          ],
+          new PublicKey("CDDmdPko2irM8Xzgdo2XMHTNW8HFsL8Ta7NCHAZ6Z5Wq")
+      );
+
+    // Sending the transaction
+    const txCounter = await program.methods
+        .sendGm()
+        .accounts({
+            author: provider.wallet.publicKey,
+            counter: counterPDA,
+            user: userPDA,
+            systemProgram: anchor.web3.SystemProgram.programId
+        })
+        .rpc();
+
+    // Fetching the user and counter account
+    userAccount = await program.account.user.fetch(userPDA);
     const counterAccount = await program.account.counter.fetch(counterPDA);
 
+    console.log(userAccount)
     console.log(counterAccount)
-    console.log("Transaction successful: https://solana.fm/tx/" + tx + "?cluster=devnet-solana");
+    console.log("Gm successful: https://solana.fm/tx/" + txCounter + "?cluster=devnet-solana");
   });
 });

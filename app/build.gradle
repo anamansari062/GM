@@ -6,6 +6,9 @@ plugins {
     id 'kotlinx-serialization'
 }
 
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+
 android {
     namespace 'com.example.solanamobiledappscaffold'
     compileSdk 33
@@ -21,11 +24,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "PROGRAM_ID", "\"" + localProperties['programId'] + "\"")
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
