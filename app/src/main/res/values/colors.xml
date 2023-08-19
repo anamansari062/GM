@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background Colors -->
+    <color name="black">#000000</color>
+    <color name="dark_gray">#333333</color>
+    <color name="light_gray">#CCCCCC</color>
+
+    <!-- Primary Colors -->
+    <color name="purple">#6A1B9A</color>
+    <color name="indigo">#3F51B5</color>
+    <color name="solana_green">#14F195</color>
+    <color name="teal">#009688</color>
+
+    <!-- Text Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="off_white">#F5F5F5</color>
+    <color name="gray">#808080</color>
+    <color name="red">#FF0000</color>
+</resources>

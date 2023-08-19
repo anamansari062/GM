@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Solana Mobile Dapp Scaffold</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_settings">Settings</string>
+    <string name="home_page_heading">Solana Mobile Scaffold</string>
+    <string name="airdrop_sol">Airdrop 1 SOL</string>
+    <string name="home_page_sub_heading">There is no better time to build consumer mobile dApps.</string>
+
+    <string name="wallet_balance">%1$s SOL</string>
+    <string name="select_wallet">Select Wallet</string>
+    <string name="copy_address">Copy address</string>
+    <string name="disconnect">Disconnect</string>
+
+    <!-- dashboard strings -->
+    <string name="sign_message">Sign Message</string>
+    <string name="send_transaction">Send Transaction</string>
+    <string name="send_versioned_transaction">Send Versioned Transaction</string>
+    <string name="build_mobile_dapps">Build mobile dApps</string>
+</resources>
