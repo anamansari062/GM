@@ -8,10 +8,13 @@ data class HomeState(
     val isAuthorized: Boolean = false,
     var wallet: Wallet? = null,
     val balance: BigDecimal = BigDecimal(0),
-    val error: String? = "",
+    val error: String? = null,
     val transactionID: String? = null,
     val texts: Texts = Texts(),
-    val gmCount: Int? = 0,
+    val gmCount: UInt? = null,
+    val gmGlobalCount: UInt? = null,
+    val specialNumber: Boolean? = null,
+    val refresh: Boolean? = null
 )
 
 data class Texts(

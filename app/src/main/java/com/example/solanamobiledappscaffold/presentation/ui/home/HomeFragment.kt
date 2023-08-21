@@ -1,12 +1,16 @@
 package com.example.solanamobiledappscaffold.presentation.ui.home
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.drawable.AnimationDrawable
+import android.opengl.Visibility
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.GuardedBy
@@ -26,6 +30,7 @@ import com.example.solanamobiledappscaffold.presentation.ui.extensions.showSnack
 import com.example.solanamobiledappscaffold.presentation.utils.StartActivityForResultSender
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.Format
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -95,7 +100,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.refreshButton.setOnClickListener {
-            viewModel.fetchGmCount()
+            viewModel.fetchGlobalGmCount()
         }
 
         binding.buildDappsBtn.setOnClickListener {
@@ -133,10 +138,9 @@ class HomeFragment : Fragment() {
                         requireView().showSnackbarWithAction("gm. done", "View") {
                             requireContext().openInBrowser(Constants.getSolanaExplorerUrl(it))
                         }
-                    }
-
-                    uiState.gmCount?.let {
-                        updateGmCount(it)
+//                        viewModel.checkSpecialNumber()
+//                        viewModel.fetchGlobalGmCount()
+//                        updateGmCount()
                     }
 
                     // TODO: show snackbar, extension
@@ -144,6 +148,44 @@ class HomeFragment : Fragment() {
                         requireView().showSnackbar(
                             it,
                         )
+                    }
+
+                    uiState.gmCount?.let {
+                        val dialogView = LayoutInflater.from(context).inflate(R.layout.special_number_dialog, null)
+                        val dialogBuilder = AlertDialog.Builder(context)
+                            .setView(dialogView)
+                            .setPositiveButton("Mint NFT") { dialog, which ->
+                                // Handle the OK button click
+                                requireView().showSnackbar(
+                                    "nft minted",
+                                )
+                            }
+
+                        val alertDialog = dialogBuilder.create()
+                        alertDialog.show()
+
+                        val specialNumberText = dialogView.findViewById<TextView>(R.id.special_number_text)
+                        specialNumberText.text = getString(R.string.congratulations_your_gm_is_special, it.toString())
+                        val mintNftButton = dialogView.findViewById<Button>(R.id.mint_nft_button)
+                            mintNftButton.setOnClickListener {
+                                requireView().showSnackbar(
+                                    "nft minted",
+                                )
+                                alertDialog.dismiss()
+                            }
+
+
+//                        alertDialog.setOnShowListener() {
+//                            val specialNumberText = dialogView.findViewById<TextView>(R.id.special_number_text)
+//                            specialNumberText.text = getString(R.string.congratulations_your_gm_is_special, uiState.gmCount)
+//                            val mintNftButton = dialogView.findViewById<Button>(R.id.mint_nft_button)
+//                            mintNftButton.setOnClickListener {
+//                                requireView().showSnackbar(
+//                                    "nft minted",
+//                                )
+//                                alertDialog.dismiss()
+//                            }
+//                        }
                     }
                 }
             }

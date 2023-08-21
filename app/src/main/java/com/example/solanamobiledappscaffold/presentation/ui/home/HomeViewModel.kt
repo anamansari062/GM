@@ -1,9 +1,13 @@
 package com.example.solanamobiledappscaffold.presentation.ui.home
 
+import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,8 +24,13 @@ import com.example.solanamobiledappscaffold.domain.use_case.solana_rpc.transacti
 import com.example.solanamobiledappscaffold.domain.use_case.solana_rpc.transactions_usecase.GetLatestBlockhashUseCase
 import com.example.solanamobiledappscaffold.presentation.utils.StartActivityForResultSender
 import com.example.solanamobiledappscaffold.BuildConfig
+import com.example.solanamobiledappscaffold.presentation.ui.extensions.showSnackbar
+import com.example.solanamobiledappscaffold.presentation.utils.Counter
+import com.example.solanamobiledappscaffold.presentation.utils.User
 import com.solana.networking.serialization.format.Borsh
 import com.solana.Solana
+import com.solana.api.SolanaAccountSerializer
+import com.solana.api.getAccountInfo
 import com.solana.core.AccountMeta
 import com.solana.core.PublicKey
 import com.solana.core.SerializeConfig
@@ -69,6 +78,9 @@ class HomeViewModel @Inject constructor(
     private val mobileWalletAdapterClientSem =
         Semaphore(1) // allow only a single MWA connection at a time
 
+    @OptIn(ExperimentalUnsignedTypes::class)
+    private val specialNumber = uintArrayOf(1u, 7u, 33u, 69u, 75u, 100u)
+
     init {
         _solana.value = Solana(HttpNetworkingRouter(RPCEndpoint.devnetSolana))
         if (walletStorageUseCase.publicKey58 != null && walletStorageUseCase.publicKey64 != null) {
@@ -82,13 +94,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun createUser(): TransactionInstruction{
-        // Derive the user PDA from the name
-        val userKey = PublicKey.findProgramAddress(listOf("user".toByteArray(), PublicKey("FGRXXizynNLs4TouMkfVPnN6Y9A7HZk8Jxu1cwrkbiSD").toByteArray()), PublicKey(BuildConfig.PROGRAM_ID))
+    private fun getUserPDA(): PublicKey {
+        return PublicKey.findProgramAddress(listOf("user".toByteArray(), PublicKey(
+            walletStorageUseCase.publicKey58.toString()).toByteArray()), PublicKey(BuildConfig.PROGRAM_ID)).address
+    }
 
+    private fun getCounterPDA(): PublicKey {
+        return PublicKey.findProgramAddress(
+            listOf("gm_counter".toByteArray()),
+            PublicKey(BuildConfig.PROGRAM_ID)
+        ).address
+    }
+
+    private fun createUser(): TransactionInstruction{
         // Defining all accounts involved in the instruction
         val keys = mutableListOf<AccountMeta>()
-        keys.add(AccountMeta(userKey.address, false, true))
+        keys.add(AccountMeta(getUserPDA(), false, true))
         keys.add(AccountMeta(PublicKey(walletStorageUseCase.publicKey58!!), true, true))
         keys.add(AccountMeta(SystemProgram.PROGRAM_ID, false, false))
 
@@ -99,14 +120,10 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun makeGm(): TransactionInstruction{
-        // Derive the counter and user PDA from the name
-        val counterKey = PublicKey.findProgramAddress(listOf("gm_counter".toByteArray()), PublicKey(BuildConfig.PROGRAM_ID))
-        val userKey = PublicKey.findProgramAddress(listOf("user".toByteArray(), PublicKey("FGRXXizynNLs4TouMkfVPnN6Y9A7HZk8Jxu1cwrkbiSD").toByteArray()), PublicKey(BuildConfig.PROGRAM_ID))
-
         // Defining all accounts involved in the instruction
         val keys = mutableListOf<AccountMeta>()
-        keys.add(AccountMeta(counterKey.address, false, true))
-        keys.add(AccountMeta(userKey.address, false, true))
+        keys.add(AccountMeta(getCounterPDA(), false, true))
+        keys.add(AccountMeta(getUserPDA(), false, true))
         keys.add(AccountMeta(PublicKey(walletStorageUseCase.publicKey58!!), true, true))
         keys.add(AccountMeta(SystemProgram.PROGRAM_ID, false, false))
 
@@ -114,6 +131,18 @@ class HomeViewModel @Inject constructor(
             PublicKey(BuildConfig.PROGRAM_ID),
             keys,
             Borsh.encodeToByteArray(AnchorInstructionSerializer("send_gm"), Args_sendGm()))
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    private suspend fun checkSpecialNumber() {
+        val count = fetchGmCountUser()
+        if(count in specialNumber){
+            _uiState.update {
+                it.copy(
+                    gmCount = count
+                )
+            }
+        }
     }
 
     fun sendGm(sender: StartActivityForResultSender) = viewModelScope.launch {
@@ -188,18 +217,18 @@ class HomeViewModel @Inject constructor(
                                                                         transactionID = transactionID,
                                                                     )
                                                                 }
-                                                                fetchGmCount()
+                                                                checkSpecialNumber()
                                                             }
                                                             .onFailure {
                                                                 if (it.message.toString().contains("0x1770")){
                                                                     _uiState.update {
                                                                         it.copy(
-                                                                            error = "You have already sent a GM today",
+                                                                            error = "You have already said alot of GM today",
                                                                         )
                                                                     }
                                                                     Log.d(
                                                                         TAG,
-                                                                        "You have already sent a GM today",
+                                                                        "You have already said alot of GM today",
                                                                     )
                                                                 }
                                                                 else {
@@ -269,14 +298,52 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun fetchGmCount(){
-        //TODO: fetch the counter account and update the UI gm count
-        _uiState.update {
-            it.copy(
-                gmCount = 0,
-            )
-        }
+    private suspend fun fetchGmCountUser(): UInt? {
+        _solana.value?.let { solana ->
+                try {
+                    val serializer =
+                        SolanaAccountSerializer((User.serializer()))
+                    val account = solana.api.getAccountInfo(serializer, getUserPDA()).getOrThrow()
+                    if (account != null) {
+                        Log.d(TAG, "Gm count of user: ${account.data?.gmCount}")
+                        return account.data?.gmCount
+                    }
+                    else {
+                        Log.d(TAG, "Gm count of user: null")
+                        return 0u
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "Error while fetching gm count: ${e}")
+                    return 0u
+                }
 
+        }
+        return 0u
+    }
+
+    fun fetchGlobalGmCount() = viewModelScope.launch {
+        _solana.value?.let { solana ->
+            withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+                try {
+                    val serializer =
+                        SolanaAccountSerializer((Counter.serializer()))
+                    val account = solana.api.getAccountInfo(serializer, getCounterPDA()).getOrThrow()
+                    if (account != null) {
+                        Log.d(TAG, "Gm Count: ${account.data?.gm}")
+                        _uiState.update {
+                            it.copy(
+                                gmGlobalCount = account.data?.gm
+                            )
+                        }
+                    }
+                    else {
+                        Log.d(TAG, "Global gm count: null")
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "Error while fetching global gm count: ${e}")
+                }
+            }
+        }
     }
 
     private suspend fun getLatestBlockhash(solana: Solana): Resource<String> {
@@ -505,10 +572,9 @@ class HomeViewModel @Inject constructor(
 
     @Serializable
     class Args_createUser()
+
     @Serializable
     class Args_sendGm()
-
-
 
     companion object {
         private const val TAG = "HomeViewModel"

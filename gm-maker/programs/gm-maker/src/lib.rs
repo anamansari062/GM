@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("CDDmdPko2irM8Xzgdo2XMHTNW8HFsL8Ta7NCHAZ6Z5Wq");
+declare_id!("Hqf7x3NE8ajoipvRofrXuQ8D2qEX9vWbeNumbCGtXcHH");
 
 #[program]
 pub mod gm_maker {
@@ -17,7 +17,7 @@ pub mod gm_maker {
         let current_slot = clock.unix_timestamp / 86400; // Current Timestamp
 
         // Check if the user has already said gm
-        require!(!(user_slot== current_slot && user.current_count==10), GmError::AlreadyGmed);
+        require!(!(user_slot== current_slot && user.current_count==20), GmError::AlreadyGmed);
 
         if counter_slot!=current_slot {
             counter.gm = 0 // gm count is changed to 0 after 24 hours
@@ -39,6 +39,8 @@ pub mod gm_maker {
 
     pub fn create_user(ctx: Context<CreateUser>) -> Result<()> {
         let user: &mut Account<User> = &mut ctx.accounts.user;
+
+        user.author = ctx.accounts.author.key();
 
         msg!("{} created user account", user.author);
 

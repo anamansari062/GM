@@ -20,4 +20,6 @@
     <string name="gm">say gm.</string>
     <string name="to_refresh_gm_count">To refresh gm count</string>
     <string name="_0_gm">0 gm</string>
+    <string name="congratulations_your_gm_is_special">Congratulations, your gm. is special! You did the %s gm today</string>
+    <string name="mint_nft">Mint NFT</string>
 </resources>
