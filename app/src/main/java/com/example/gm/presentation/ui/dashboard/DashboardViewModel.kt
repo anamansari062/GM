@@ -15,7 +15,9 @@ import com.example.gm.domain.use_case.solana_rpc.sign_message.SignMessageUseCase
 import com.example.gm.domain.use_case.solana_rpc.sign_transaction.SendTransactionUseCase
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.GetLatestBlockhashUseCase
 import com.example.gm.domain.utils.toBase64
+import com.example.gm.presentation.utils.NftList
 import com.example.gm.presentation.utils.StartActivityForResultSender
+import com.google.gson.Gson
 import com.solana.Solana
 import com.solana.api.sendRawTransaction
 import com.solana.core.PublicKey
@@ -35,11 +37,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.inject.Inject
+import com.example.gm.BuildConfig
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import java.io.IOException
+
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
@@ -70,70 +80,52 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    fun signMessage(sender: StartActivityForResultSender) = viewModelScope.launch {
-        localAssociateAndExecute(sender) { client ->
-            when (val result = authorizeWalletUseCase(client)) {
-                is Resource.Success -> {
-                    Log.d(TAG, "Wallet connected: ${result.data}")
+    fun fetchNftList() = viewModelScope.launch {
+        withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+            val client = OkHttpClient()
+            val receiver = walletStorageUseCase.publicKey58!!
 
+            val request = Request.Builder()
+                .url("https://dev.underdogprotocol.com/v2/projects/3/nfts?page=1&limit=10&ownerAddress=$receiver")
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader(
+                    "authorization",
+                    "Bearer ${BuildConfig.BEARER}"
+                )
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Handle failure
+                    e.printStackTrace()
                     _uiState.update {
                         it.copy(
-                            wallet = result.data,
+                            error = e.message ?: ""
                         )
                     }
+                }
 
-                    walletStorageUseCase.saveWallet(
-                        Wallet(
-                            result.data!!.publicKey58,
-                            result.data.publicKey64,
-                            result.data.balance,
-                        ),
-                    )
-
-                    val messages = Array(1) {
-                        "Say Hello to Solana Mobile dApp Scaffold!".toByteArray()
-                    }
-
-                    when (
-                        val message = signMessageUseCase(
-                            client,
-                            messages,
-                            arrayOf(walletStorageUseCase.publicKey64!!.toBase64()),
-                        )
-                    ) {
-                        is Resource.Success -> {
-                            Message(message.data!!.signedMessage).let { signPayloadResult ->
-                                _uiState.update {
-                                    it.copy(
-                                        signedMessage = Message(
-                                            signedMessage = signPayloadResult.signedMessage,
-                                        ).toString(),
-                                    )
-                                }
-                            }
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: ""
+                        val gson = Gson()
+                        val nftList = gson.fromJson(responseBody, NftList::class.java)
+                        // Process user data
+                        Log.d(TAG, "fetchNftList: ${nftList}")
+                        _uiState.update {
+                            it.copy(
+                                nftList = nftList,
+                                isLoading = false
+                            )
                         }
-
-                        is Resource.Loading -> {
-                        }
-
-                        is Resource.Error -> {
-                        }
+                    } else {
+                        // Handle non-successful response
+                        println("Request not successful: ${response.code}")
                     }
                 }
-                is Resource.Loading -> {
-                    _uiState.value = DashboardState(
-                        isLoading = true,
-                    )
-                }
-                is Resource.Error -> {
-                    Log.e(TAG, "Authorization failed")
-                    _uiState.value = DashboardState(
-                        error = result.message
-                            ?: "An unexpected error occurred",
-                        isLoading = false,
-                    )
-                }
-            }
+            })
+
         }
     }
 
@@ -153,136 +145,6 @@ class DashboardViewModel @Inject constructor(
             }
         }
         return blockHash
-    }
-
-    fun signTransaction(sender: StartActivityForResultSender) = viewModelScope.launch {
-        _solana.value?.let { solana ->
-            withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
-                getLatestBlockhash(solana).let { blockHash ->
-                    run {
-                        when (blockHash) {
-                            is Resource.Success -> {
-                                Log.d(TAG, "Blockhash: ${blockHash.data}")
-                                localAssociateAndExecute(sender) { client ->
-                                    when (val result = authorizeWalletUseCase(client)) {
-                                        is Resource.Success -> {
-                                            Log.d(TAG, "Wallet connected: ${result.data}")
-
-                                            _uiState.update {
-                                                it.copy(
-                                                    wallet = result.data,
-                                                )
-                                            }
-
-                                            walletStorageUseCase.saveWallet(
-                                                Wallet(
-                                                    result.data!!.publicKey58,
-                                                    result.data.publicKey64,
-                                                    result.data.balance,
-                                                ),
-                                            )
-
-                                            val instruction = MemoProgram.writeUtf8(
-                                                PublicKey(walletStorageUseCase.publicKey58!!),
-                                                "Say Hello to Solana Mobile dApp Scaffold!",
-                                            )
-
-                                            val transaction = Transaction()
-                                            transaction.setRecentBlockHash(blockHash.data!!)
-                                            transaction.addInstruction(instruction)
-                                            transaction.feePayer =
-                                                PublicKey(walletStorageUseCase.publicKey58!!)
-
-                                            val transactions = Array(1) {
-                                                transaction.serialize(
-                                                    config = SerializeConfig(
-                                                        requireAllSignatures = false,
-                                                    ),
-                                                )
-                                            }
-
-                                            when (
-                                                val message = sendTransactionUseCase(
-                                                    client,
-                                                    transactions,
-                                                )
-                                            ) {
-                                                is Resource.Success -> {
-                                                    com.example.gm.domain.model.Transaction(
-                                                        message.data!!.signedTransaction,
-                                                    ).let { transaction ->
-
-                                                        // TODO: convert to usecase
-                                                        solana.api.sendRawTransaction(message.data.signedTransaction)
-                                                            .onSuccess { transactionID ->
-                                                                Log.d(
-                                                                    TAG,
-                                                                    "Transaction sent: $transactionID",
-                                                                )
-                                                                _uiState.update {
-                                                                    it.copy(
-                                                                        transactionID = transactionID,
-                                                                    )
-                                                                }
-                                                            }
-                                                            .onFailure {
-                                                                Log.d(
-                                                                    TAG,
-                                                                    it.localizedMessage
-                                                                        ?: it.message.toString(),
-                                                                )
-                                                            }
-
-                                                        Log.d(
-                                                            TAG,
-                                                            "Transaction: ${
-                                                                com.example.gm.domain.model.Transaction(
-                                                                    signedTransaction = transaction.signedTransaction,
-                                                                )
-                                                            }",
-                                                        )
-                                                    }
-                                                }
-
-                                                is Resource.Loading -> {
-                                                }
-
-                                                is Resource.Error -> {
-                                                    Log.e(TAG, message.message.toString())
-                                                }
-                                            }
-                                        }
-                                        is Resource.Loading -> {
-                                            _uiState.value = DashboardState(
-                                                isLoading = true,
-                                            )
-                                        }
-                                        is Resource.Error -> {
-                                            Log.e(TAG, "Authorization failed")
-                                            _uiState.value = DashboardState(
-                                                error = result.message
-                                                    ?: "An unexpected error occurred",
-                                                isLoading = false,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            is Resource.Loading -> {
-                            }
-                            is Resource.Error -> {
-                                Log.e(TAG, "Fetch blockhash failed")
-                                _uiState.value = DashboardState(
-                                    error = blockHash.message
-                                        ?: "An unexpected error occurred",
-                                    isLoading = false,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private suspend fun <T> localAssociateAndExecute(

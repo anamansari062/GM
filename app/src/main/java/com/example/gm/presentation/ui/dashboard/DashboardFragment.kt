@@ -9,9 +9,12 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.GuardedBy
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import com.example.gm.R
 import com.example.gm.common.Constants.getSolanaExplorerUrl
 import com.example.gm.databinding.FragmentDashboardBinding
@@ -19,6 +22,7 @@ import com.example.gm.presentation.ui.extensions.copyToClipboard
 import com.example.gm.presentation.ui.extensions.openInBrowser
 import com.example.gm.presentation.ui.extensions.showSnackbar
 import com.example.gm.presentation.ui.extensions.showSnackbarWithAction
+import com.example.gm.presentation.utils.Nft
 import com.example.gm.presentation.utils.StartActivityForResultSender
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -52,97 +56,34 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        checkWalletConnected({
-            enableWallet()
-        }, {
-            disableWallet()
-        })
-
-        binding.signMsgBtn.setOnClickListener {
-            checkWalletConnected(view) {
-                viewModel.signMessage(intentSender)
-            }
-        }
-
-        binding.sendTransactionBtn.setOnClickListener {
-            checkWalletConnected(view) {
-                viewModel.signTransaction(intentSender)
-            }
-        }
-
-        binding.sendVersionedTransactionBtn.setOnClickListener {
-            requireView().showSnackbar("Coming soon! :)")
-        }
+        viewModel.fetchNftList()
 
         observeViewModel()
     }
 
-    private fun checkWalletConnected(view: View, action: () -> Unit) {
-        viewModel.uiState.value.wallet?.publicKey58?.let {
-            action.invoke()
-        } ?: view.showSnackbar("Connect a wallet first!")
-    }
-
-    private fun checkWalletConnected(
-        positiveAction: () -> Unit,
-        negativeAction: () -> Unit,
-    ) {
-        viewModel.uiState.value.wallet?.publicKey58?.let {
-            positiveAction.invoke()
-        } ?: negativeAction.invoke()
-    }
-
-    private fun enableWallet() {
-        binding.signMsgBtn.setTextColor(
-            ContextCompat.getColor(requireContext(), R.color.black),
-        )
-
-        binding.sendTransactionBtn.setTextColor(
-            ContextCompat.getColor(requireContext(), R.color.black),
-        )
-
-        binding.signMsgBtn.setBackgroundColor(
-            ContextCompat.getColor(requireContext(), R.color.solana_green),
-        )
-
-        binding.sendTransactionBtn.setBackgroundColor(
-            ContextCompat.getColor(requireContext(), R.color.solana_green),
-        )
-    }
-
-    private fun disableWallet() {
-        binding.signMsgBtn.setTextColor(
-            ContextCompat.getColor(requireContext(), R.color.white),
-        )
-
-        binding.sendTransactionBtn.setTextColor(
-            ContextCompat.getColor(requireContext(), R.color.white),
-        )
-
-        binding.signMsgBtn.setBackgroundColor(
-            ContextCompat.getColor(requireContext(), R.color.dark_gray),
-        )
-
-        binding.sendTransactionBtn.setBackgroundColor(
-            ContextCompat.getColor(requireContext(), R.color.dark_gray),
-        )
-    }
 
     private fun observeViewModel() {
         lifecycleScope.launch {
             with(viewModel) {
                 uiState.collect { uiState ->
-                    uiState.signedMessage?.let {
-                        requireView().showSnackbarWithAction("Signed message: $it") {
-                            requireContext().copyToClipboard(text = it)
-                            requireView().showSnackbar("Copied to clipboard")
-                        }
-                    }
+                    uiState.nftList?.let {
+                        val dataList = it.results
+                        val adapter = NftAdapter(requireContext(), dataList) // Replace with your data
+                        val spanCount = 2 // Number of columns in the grid
+                        val layoutManager = GridLayoutManager(context, spanCount)
 
-                    uiState.transactionID?.let {
-                        requireView().showSnackbarWithAction("Transaction Signature: $it", "View") {
-                            requireContext().openInBrowser(getSolanaExplorerUrl(it))
-                        }
+                        binding.nftRecyclerView.layoutManager = layoutManager
+                        binding.nftRecyclerView.adapter = adapter
+
+//                        adapter.setOnItemClickListener(object : NftAdapter.OnItemClickListener {
+//                            override fun onItemClick(nft: Nft) {
+//                                val bundle = bundleOf("id" to "documentSnapshot")
+//                                view.findNavController().navigate(R.id.action_forumFragment_to_replyFragment, bundle)
+//                            }
+//                        })
+                    }
+                    uiState.isLoading.let {
+                        binding.progressBar.visibility = if (it) View.VISIBLE else View.GONE
                     }
                 }
             }

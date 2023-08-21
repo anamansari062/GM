@@ -23,4 +23,5 @@
     <string name="congratulations_your_gm_is_special">Congratulations, your gm. is special! You did the %s gm today</string>
     <string name="mint_nft">Mint NFT</string>
     <string name="gm_count_text">You have said gm %s times today!</string>
+    <string name="rewards">Rewards</string>
 </resources>
