@@ -98,21 +98,22 @@
         android:fontFamily="@font/custom_font"
         android:gravity="center"
         android:padding="16dp"
+        android:layout_marginBottom="40dp"
         android:text="@string/_0_gm"
         android:visibility="invisible"
         android:textColor="@color/white"
         android:textSize="20sp"
         android:layout_gravity="center_horizontal" />
 
-    <ImageView
-        android:id="@+id/refresh_button"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:visibility="invisible"
-        android:contentDescription="@string/to_refresh_gm_count"
-        android:src="@drawable/baseline_refresh_24" />
+<!--    <ImageView-->
+<!--        android:id="@+id/refresh_button"-->
+<!--        android:layout_width="30dp"-->
+<!--        android:layout_height="30dp"-->
+<!--        android:layout_gravity="center_horizontal"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:visibility="invisible"-->
+<!--        android:contentDescription="@string/to_refresh_gm_count"-->
+<!--        android:src="@drawable/baseline_refresh_24" />-->
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/airdrop_btn"

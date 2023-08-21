@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/text_background">
+
+    <TextView
+        android:id="@+id/special_number_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/custom_font"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:textColor="@color/white"
+        android:lineHeight="30dp"
+        android:text="@string/congratulations_your_gm_is_special" />
+
+    <Button
+        android:id="@+id/mint_nft_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:fontFamily="@font/custom_font"
+        android:backgroundTint="@color/solana_green"
+        android:textColor="@color/white"
+        android:text="@string/mint_nft" />
+
+</LinearLayout>

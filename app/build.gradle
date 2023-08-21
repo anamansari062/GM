@@ -10,11 +10,11 @@ def localProperties = new Properties()
 localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 
 android {
-    namespace 'com.example.solanamobiledappscaffold'
+    namespace 'com.example.gm'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.solanamobiledappscaffold"
+        applicationId "com.example.gm"
         minSdk 24
         targetSdk 33
         versionCode 1
@@ -26,6 +26,14 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "PROGRAM_ID", "\"" + localProperties['programId'] + "\"")
+            buildConfigField("String", "BEARER", "\"" + localProperties['bearer'] + "\"")
+            buildConfigField("String", "GM1", "\"" + localProperties['gm1'] + "\"")
+            buildConfigField("String", "GM7", "\"" + localProperties['gm7'] + "\"")
+            buildConfigField("String", "GM33", "\"" + localProperties['gm33'] + "\"")
+            buildConfigField("String", "GM69", "\"" + localProperties['gm69'] + "\"")
+            buildConfigField("String", "GM75", "\"" + localProperties['gm75'] + "\"")
+            buildConfigField("String", "GM100", "\"" + localProperties['gm100'] + "\"")
+            buildConfigField("String", "GM", "\"" + localProperties['gm'] + "\"")
         }
         release {
             minifyEnabled false
