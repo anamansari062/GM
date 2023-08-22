@@ -3,7 +3,8 @@ gm is a mobile app.
 Simply tap the "say gm" button to increment the global gm counter. When your taps align to create a special number on the gm counter (Example the 1,7,69,75th gm), you'll be rewarded with an NFT. It is live on Devnet, APK file can be downloaded from [here](https://drive.google.com/drive/folders/1_tdvZucRClpxs0dzVBDruOxqub2RaTPc?usp=sharing).
 
 ## App Demo
-[![Demo Video]()](https://www.youtube.com/watch?v=3tIPIRfJiek)
+Click on the image below 👇🏻
+[![Demo Video](/images/gm_demo_thumbnail.png)](https://www.youtube.com/watch?v=3tIPIRfJiek)
 
 ## Features
 - **Special Number NFT Rewards** 🎁
@@ -34,9 +35,9 @@ Simply tap the "say gm" button to increment the global gm counter. When your tap
   </thead>
   <tbody>
   <tr>
-    <td><img src="https://user-images.githubusercontent.com/75211982/232579436-c54da8e8-ee31-465c-a921-9227bedc34c0.png" alt="Image 1" width="400"></td>
-    <td><img src="https://user-images.githubusercontent.com/75211982/232579459-c5858817-52bb-4382-9d77-4cd989cdc860.png" alt="Image 2" width="400"></td>
-    <td><img src="https://user-images.githubusercontent.com/75211982/232579459-c5858817-52bb-4382-9d77-4cd989cdc860.png" alt="Image 3" width="400"></td>
+    <td><img src="/images/home_ss.png" alt="Image 1" width="400"></td>
+    <td><img src="/images/dashboard_ss.png" alt="Image 2" width="400"></td>
+    <td><img src="/images/nft_ss.png" alt="Image 3" width="400"></td>
   </tr>
     </tbody>
 </table>
@@ -63,6 +64,9 @@ Simply tap the "say gm" button to increment the global gm counter. When your tap
 ## 👨‍💻 Contributing
 
 - Any contributions you make to this project is **greatly appreciated**.
+
+## License 🛡️
+GM is licensed under the MIT License - see the [`LICENSE`](LICENSE.txt) file for more information.
 
 ## Bug / Feature Request
 
