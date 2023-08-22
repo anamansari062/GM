@@ -25,3 +25,9 @@ data class Attributes(
     val gm: String,
     val date: String
 )
+
+data class CreateNft(
+    val projectId: Int,
+    val transactionId: String,
+    val nftId: Int,
+)

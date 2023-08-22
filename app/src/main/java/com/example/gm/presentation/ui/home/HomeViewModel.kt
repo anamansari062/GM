@@ -21,7 +21,11 @@ import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.RequestAir
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.GetLatestBlockhashUseCase
 import com.example.gm.presentation.utils.StartActivityForResultSender
 import com.example.gm.BuildConfig
+import com.example.gm.presentation.ui.extensions.openInBrowser
+import com.example.gm.presentation.utils.CreateNft
+import com.example.gm.presentation.utils.Nft
 import com.example.gm.presentation.utils.User
+import com.google.gson.Gson
 import com.solana.networking.serialization.format.Borsh
 import com.solana.Solana
 import com.solana.api.SolanaAccountSerializer
@@ -47,10 +51,14 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.Serializable
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.Response
+import java.io.IOException
 import java.math.BigDecimal
 import java.util.Date
 import java.util.concurrent.CancellationException
@@ -79,7 +87,7 @@ class HomeViewModel @Inject constructor(
         Semaphore(1) // allow only a single MWA connection at a time
 
     @OptIn(ExperimentalUnsignedTypes::class)
-    private val specialNumber = uintArrayOf(1u, 7u, 33u, 37u, 69u, 75u, 100u)
+    private val specialNumber = uintArrayOf(1u, 7u, 33u, 37u, 57u, 69u, 75u, 100u)
 
     init {
         _solana.value = Solana(HttpNetworkingRouter(RPCEndpoint.devnetSolana))
@@ -211,14 +219,86 @@ class HomeViewModel @Inject constructor(
                     .addHeader("authorization", "Bearer ${BuildConfig.BEARER}")
                     .build()
 
-                val response = client.newCall(request).execute()
+                client.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        // Handle failure
+                        e.printStackTrace()
+                        _uiState.update {
+                            it.copy(
+                                error = e.message ?: ""
+                            )
+                        }
+                    }
 
-                Log.d(TAG, response.message)
+                    override fun onResponse(call: Call, response: Response) {
+                        if (response.isSuccessful) {
+                            val responseBody = response.body?.string() ?: ""
+                            val gson = Gson()
+                            val nft = gson.fromJson(responseBody, CreateNft::class.java)
+                            fetchNft(nft.projectId, nft.nftId)
+                            Log.d(TAG, "Minted NFT: $nft")
 
+                        } else {
+                            // Handle non-successful response
+                            println("Request not successful: ${response.code}")
+                        }
+                    }
+                })
             }
 
         }
     }
+
+    fun fetchNft(projectId: Int, nftId: Int) {
+        val client = OkHttpClient()
+
+        val request = Request.Builder()
+            .url("https://dev.underdogprotocol.com/v2/projects/$projectId/nfts/$nftId")
+            .get()
+            .addHeader("accept", "application/json")
+            .addHeader("authorization", "Bearer ${BuildConfig.BEARER}")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle failure
+                e.printStackTrace()
+                _uiState.update {
+                    it.copy(
+                        error = e.message ?: ""
+                    )
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string() ?: ""
+                    val gson = Gson()
+                    val nft = gson.fromJson(responseBody, Nft::class.java)
+                    _uiState.update {
+                        it.copy(
+                            nft = nft
+                        )
+                    }
+                    Log.d(TAG, "Minted NFT Details: $nft")
+
+                } else {
+                    // Handle non-successful response
+                    println("Request not successful: ${response.code}")
+                }
+            }
+        })
+    }
+
+    fun tweet(tweet: String) {
+        _uiState.update {
+            it.copy(
+                tweetText = tweet
+            )
+        }
+    }
+
+
 
     fun sendGm(sender: StartActivityForResultSender) = viewModelScope.launch {
         _solana.value?.let { solana ->

@@ -2,9 +2,11 @@ package com.example.gm.presentation.ui.home
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.drawable.AnimationDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +24,7 @@ import com.example.gm.common.Constants
 import com.example.gm.common.Constants.TWITTER_SHARE_URL
 import com.example.gm.common.Constants.formatAddress
 import com.example.gm.databinding.FragmentHomeBinding
+import com.example.gm.presentation.MainActivity
 import com.example.gm.presentation.ui.extensions.copyToClipboard
 import com.example.gm.presentation.ui.extensions.openInBrowser
 import com.example.gm.presentation.ui.extensions.showSnackbar
@@ -29,6 +32,7 @@ import com.example.gm.presentation.ui.extensions.showSnackbarWithAction
 import com.example.gm.presentation.utils.StartActivityForResultSender
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -90,11 +94,12 @@ class HomeFragment : Fragment() {
         }
 
         binding.gmButton.setOnClickListener {
-            viewModel.uiState.value.wallet?.let {
-                viewModel.sendGm(intentSender)
-            } ?: view.showSnackbar(
-                "Can't say gm without wallet!",
-            )
+//            viewModel.uiState.value.wallet?.let {
+//                viewModel.sendGm(intentSender)
+//            } ?: view.showSnackbar(
+//                "Can't say gm without wallet!",
+//            )
+            viewModel.mintNft()
         }
 
         binding.buildDappsBtn.setOnClickListener {
@@ -160,6 +165,14 @@ class HomeFragment : Fragment() {
                         mintNftButton.setOnClickListener {
                             viewModel.mintNft()
                             alertDialog.dismiss()
+                        }
+                    }
+                    uiState.nft?.let { nft ->
+                        requireView().showSnackbarWithAction("Successfully Minted", "Tweet") {
+                            val tweetText =
+                                "Said the special gm! Minted a cool nft on gm app"
+                            URLEncoder.encode(tweetText, "UTF-8")
+                            requireContext().openInBrowser("https://twitter.com/intent/tweet?text=$tweetText")
                         }
                     }
                 }

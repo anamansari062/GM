@@ -15,5 +15,25 @@
         android:id="@+id/navigation_dashboard"
         android:name="com.example.gm.presentation.ui.dashboard.DashboardFragment"
         android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_dashboard" >
+        <action
+            android:id="@+id/action_navigation_dashboard_to_nftFragment"
+            app:destination="@id/nftFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left">
+
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/nftFragment"
+        android:name="com.example.gm.presentation.ui.dashboard.NftFragment"
+        android:label="fragment_nft"
+        tools:layout="@layout/fragment_nft">
+
+    </fragment>
+
+
 </navigation>

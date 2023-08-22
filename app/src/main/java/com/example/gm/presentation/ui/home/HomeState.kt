@@ -1,6 +1,7 @@
 package com.example.gm.presentation.ui.home
 
 import com.example.gm.domain.model.Wallet
+import com.example.gm.presentation.utils.Nft
 import java.math.BigDecimal
 
 data class HomeState(
@@ -13,6 +14,8 @@ data class HomeState(
     val texts: Texts = Texts(),
     val specialGm: UInt? = null,
     val gmCurrentCount: UByte? = null,
+    val nft: Nft? = null,
+    var tweetText: String? = null,
 )
 
 data class Texts(

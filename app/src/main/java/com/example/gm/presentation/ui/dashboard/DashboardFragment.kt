@@ -75,12 +75,12 @@ class DashboardFragment : Fragment() {
                         binding.nftRecyclerView.layoutManager = layoutManager
                         binding.nftRecyclerView.adapter = adapter
 
-//                        adapter.setOnItemClickListener(object : NftAdapter.OnItemClickListener {
-//                            override fun onItemClick(nft: Nft) {
-//                                val bundle = bundleOf("id" to "documentSnapshot")
-//                                view.findNavController().navigate(R.id.action_forumFragment_to_replyFragment, bundle)
-//                            }
-//                        })
+                        adapter.setOnItemClickListener(object : NftAdapter.OnItemClickListener {
+                            override fun onItemClick(nft: Nft) {
+                                val bundle = bundleOf("projectId" to nft.projectId, "nftId" to nft.id)
+                                requireView().findNavController().navigate(R.id.action_navigation_dashboard_to_nftFragment, bundle)
+                            }
+                        })
                     }
                     uiState.isLoading.let {
                         binding.progressBar.visibility = if (it) View.VISIBLE else View.GONE
