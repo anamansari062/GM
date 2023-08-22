@@ -2,10 +2,10 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-gm_maker = "Hqf7x3NE8ajoipvRofrXuQ8D2qEX9vWbeNumbCGtXcHH"
+gm_maker = "CG6a1QDsyN6A4wSiGRrhLsqMT4gQY6oPbgvMcdfgh2r"
 
 [programs.devnet]
-gm_maker = "Hqf7x3NE8ajoipvRofrXuQ8D2qEX9vWbeNumbCGtXcHH"
+gm_maker = "CG6a1QDsyN6A4wSiGRrhLsqMT4gQY6oPbgvMcdfgh2r"
 
 [registry]
 url = "https://api.apr.dev"

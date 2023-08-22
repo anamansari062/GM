@@ -2,11 +2,9 @@ package com.example.gm.presentation.ui.home
 
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.drawable.AnimationDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,7 +22,6 @@ import com.example.gm.common.Constants
 import com.example.gm.common.Constants.TWITTER_SHARE_URL
 import com.example.gm.common.Constants.formatAddress
 import com.example.gm.databinding.FragmentHomeBinding
-import com.example.gm.presentation.MainActivity
 import com.example.gm.presentation.ui.extensions.copyToClipboard
 import com.example.gm.presentation.ui.extensions.openInBrowser
 import com.example.gm.presentation.ui.extensions.showSnackbar
@@ -94,12 +91,11 @@ class HomeFragment : Fragment() {
         }
 
         binding.gmButton.setOnClickListener {
-//            viewModel.uiState.value.wallet?.let {
-//                viewModel.sendGm(intentSender)
-//            } ?: view.showSnackbar(
-//                "Can't say gm without wallet!",
-//            )
-            viewModel.mintNft()
+            viewModel.uiState.value.wallet?.let {
+                viewModel.sendGm(intentSender)
+            } ?: view.showSnackbar(
+                "Can't say gm without wallet!",
+            )
         }
 
         binding.buildDappsBtn.setOnClickListener {
@@ -137,6 +133,7 @@ class HomeFragment : Fragment() {
                         requireView().showSnackbarWithAction("gm. done", "View") {
                             requireContext().openInBrowser(Constants.getSolanaExplorerUrl(it))
                         }
+                        uiState.transactionID = null
                     }
 
                     // TODO: show snackbar, extension
@@ -164,6 +161,7 @@ class HomeFragment : Fragment() {
                         val mintNftButton = dialogView.findViewById<Button>(R.id.mint_nft_button)
                         mintNftButton.setOnClickListener {
                             viewModel.mintNft()
+                            uiState.specialGm = null
                             alertDialog.dismiss()
                         }
                     }
@@ -174,18 +172,11 @@ class HomeFragment : Fragment() {
                             URLEncoder.encode(tweetText, "UTF-8")
                             requireContext().openInBrowser("https://twitter.com/intent/tweet?text=$tweetText")
                         }
+                        uiState.nft = null
                     }
                 }
             }
         }
-    }
-
-    private fun updateGmCount(count: Int) {
-        binding.gmCountTv.text = String.format(
-            count.toString(),
-        )
-        binding.gmCountTv.visibility = View.VISIBLE
-//        binding.refreshButton.visibility = View.VISIBLE
     }
 
     private fun connectWallet(publicKey: String) {

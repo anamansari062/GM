@@ -10,11 +10,11 @@ data class HomeState(
     var wallet: Wallet? = null,
     val balance: BigDecimal = BigDecimal(0),
     val error: String? = null,
-    val transactionID: String? = null,
+    var transactionID: String? = null,
     val texts: Texts = Texts(),
-    val specialGm: UInt? = null,
+    var specialGm: UInt? = null,
     val gmCurrentCount: UByte? = null,
-    val nft: Nft? = null,
+    var nft: Nft? = null,
     var tweetText: String? = null,
 )
 

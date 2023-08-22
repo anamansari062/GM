@@ -1,54 +1,36 @@
 package com.example.gm.presentation.ui.dashboard
 
-import android.content.ActivityNotFoundException
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gm.common.Resource
-import com.example.gm.domain.model.Message
+import com.example.gm.BuildConfig
 import com.example.gm.domain.model.Wallet
 import com.example.gm.domain.use_case.basic_storage.BasicWalletStorageUseCase
 import com.example.gm.domain.use_case.solana_rpc.authorize_wallet.AuthorizeWalletUseCase
 import com.example.gm.domain.use_case.solana_rpc.sign_message.SignMessageUseCase
 import com.example.gm.domain.use_case.solana_rpc.sign_transaction.SendTransactionUseCase
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.GetLatestBlockhashUseCase
-import com.example.gm.domain.utils.toBase64
 import com.example.gm.presentation.utils.NftList
-import com.example.gm.presentation.utils.StartActivityForResultSender
 import com.google.gson.Gson
 import com.solana.Solana
-import com.solana.api.sendRawTransaction
-import com.solana.core.PublicKey
-import com.solana.core.SerializeConfig
-import com.solana.core.Transaction
-import com.solana.mobilewalletadapter.clientlib.protocol.MobileWalletAdapterClient
-import com.solana.mobilewalletadapter.clientlib.scenario.LocalAssociationIntentCreator
-import com.solana.mobilewalletadapter.clientlib.scenario.LocalAssociationScenario
-import com.solana.mobilewalletadapter.clientlib.scenario.Scenario
 import com.solana.networking.HttpNetworkingRouter
 import com.solana.networking.RPCEndpoint
-import com.solana.programs.MemoProgram
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.util.concurrent.CancellationException
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import javax.inject.Inject
-import com.example.gm.BuildConfig
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
+import javax.inject.Inject
 
 
 @HiltViewModel
@@ -86,7 +68,7 @@ class DashboardViewModel @Inject constructor(
             val receiver = walletStorageUseCase.publicKey58!!
 
             val request = Request.Builder()
-                .url("https://dev.underdogprotocol.com/v2/projects/3/nfts?page=1&limit=10&ownerAddress=$receiver")
+                .url("https://dev.underdogprotocol.com/v2/projects/4/nfts?page=1&limit=10&ownerAddress=$receiver")
                 .get()
                 .addHeader("accept", "application/json")
                 .addHeader(
@@ -126,85 +108,6 @@ class DashboardViewModel @Inject constructor(
                 }
             })
 
-        }
-    }
-
-    private suspend fun getLatestBlockhash(solana: Solana): Resource<String> {
-        var blockHash: Resource<String> = Resource.Loading()
-        getLatestBlockhashUseCase(solana).collect { result ->
-            blockHash = when (result) {
-                is Resource.Success -> {
-                    result
-                }
-                is Resource.Loading -> {
-                    result
-                }
-                is Resource.Error -> {
-                    result
-                }
-            }
-        }
-        return blockHash
-    }
-
-    private suspend fun <T> localAssociateAndExecute(
-        sender: StartActivityForResultSender,
-        uriPrefix: Uri? = null,
-        action: suspend (MobileWalletAdapterClient) -> T?,
-    ): T? = coroutineScope {
-        return@coroutineScope mobileWalletAdapterClientSem.withPermit {
-            val localAssociation = LocalAssociationScenario(Scenario.DEFAULT_CLIENT_TIMEOUT_MS)
-
-            val associationIntent = LocalAssociationIntentCreator.createAssociationIntent(
-                uriPrefix,
-                localAssociation.port,
-                localAssociation.session,
-            )
-            try {
-                sender.startActivityForResult(associationIntent) {
-                    viewModelScope.launch {
-                        // Ensure this coroutine will wrap up in a timely fashion when the launched
-                        // activity completes
-                        delay(LOCAL_ASSOCIATION_CANCEL_AFTER_WALLET_CLOSED_TIMEOUT_MS)
-                        this@coroutineScope.cancel()
-                    }
-                }
-            } catch (e: ActivityNotFoundException) {
-                Log.e(TAG, "Failed to start intent=$associationIntent", e)
-//                Toast.makeText(sender as Context, "msg_wallet_not_found", Toast.LENGTH_LONG).show()
-                return@withPermit null
-            }
-
-            return@withPermit withContext(Dispatchers.IO) {
-                try {
-                    val mobileWalletAdapterClient = try {
-                        runInterruptible {
-                            localAssociation.start()
-                                .get(LOCAL_ASSOCIATION_START_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                        }
-                    } catch (e: InterruptedException) {
-                        Log.w(TAG, "Interrupted while waiting for local association to be ready")
-                        return@withContext null
-                    } catch (e: TimeoutException) {
-                        Log.e(TAG, "Timed out waiting for local association to be ready")
-                        return@withContext null
-                    } catch (e: ExecutionException) {
-                        Log.e(TAG, "Failed establishing local association with wallet", e.cause)
-                        return@withContext null
-                    } catch (e: CancellationException) {
-                        Log.e(TAG, "Local association was cancelled before connected", e)
-                        return@withContext null
-                    }
-
-                    // NOTE: this is a blocking method call, appropriate in the Dispatchers.IO context
-                    action(mobileWalletAdapterClient)
-                } finally {
-                    // running in Dispatchers.IO; blocking is appropriate
-                    @Suppress("BlockingMethodInNonBlockingContext")
-                    localAssociation.close()
-                        .get(LOCAL_ASSOCIATION_CLOSE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                }
-            }
         }
     }
 

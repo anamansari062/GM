@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.GuardedBy
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -16,12 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.gm.R
-import com.example.gm.common.Constants.getSolanaExplorerUrl
 import com.example.gm.databinding.FragmentDashboardBinding
-import com.example.gm.presentation.ui.extensions.copyToClipboard
-import com.example.gm.presentation.ui.extensions.openInBrowser
-import com.example.gm.presentation.ui.extensions.showSnackbar
-import com.example.gm.presentation.ui.extensions.showSnackbarWithAction
 import com.example.gm.presentation.utils.Nft
 import com.example.gm.presentation.utils.StartActivityForResultSender
 import dagger.hilt.android.AndroidEntryPoint
@@ -77,7 +71,7 @@ class DashboardFragment : Fragment() {
 
                         adapter.setOnItemClickListener(object : NftAdapter.OnItemClickListener {
                             override fun onItemClick(nft: Nft) {
-                                val bundle = bundleOf("projectId" to nft.projectId, "nftId" to nft.id)
+                                val bundle = bundleOf("name" to nft.name, "image" to nft.image, "gm" to nft.attributes.gm, "date" to nft.attributes.date)
                                 requireView().findNavController().navigate(R.id.action_navigation_dashboard_to_nftFragment, bundle)
                             }
                         })

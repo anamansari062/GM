@@ -41,8 +41,8 @@ class MainActivity : AppCompatActivity() {
 
         val calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, 15)
-            set(Calendar.MINUTE, 30)
+            set(Calendar.HOUR_OF_DAY, 13)
+            set(Calendar.MINUTE, 1)
         }
 
         try {

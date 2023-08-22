@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.gm.BuildConfig
 import com.example.gm.R
 import com.example.gm.common.Constants
 import com.example.gm.common.Constants.formatBalance
@@ -17,25 +18,22 @@ import com.example.gm.domain.use_case.basic_storage.BasicWalletStorageUseCase
 import com.example.gm.domain.use_case.solana_rpc.authorize_wallet.AuthorizeWalletUseCase
 import com.example.gm.domain.use_case.solana_rpc.sign_transaction.SendTransactionUseCase
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.BalanceUseCase
-import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.RequestAirdropUseCase
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.GetLatestBlockhashUseCase
-import com.example.gm.presentation.utils.StartActivityForResultSender
-import com.example.gm.BuildConfig
-import com.example.gm.presentation.ui.extensions.openInBrowser
+import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.RequestAirdropUseCase
 import com.example.gm.presentation.utils.CreateNft
 import com.example.gm.presentation.utils.Nft
+import com.example.gm.presentation.utils.StartActivityForResultSender
 import com.example.gm.presentation.utils.User
 import com.google.gson.Gson
-import com.solana.networking.serialization.format.Borsh
 import com.solana.Solana
 import com.solana.api.SolanaAccountSerializer
 import com.solana.api.getAccountInfo
+import com.solana.api.sendRawTransaction
 import com.solana.core.AccountMeta
 import com.solana.core.PublicKey
 import com.solana.core.SerializeConfig
 import com.solana.core.Transaction
 import com.solana.core.TransactionInstruction
-import com.solana.api.sendRawTransaction
 import com.solana.mobilewalletadapter.clientlib.protocol.MobileWalletAdapterClient
 import com.solana.mobilewalletadapter.clientlib.scenario.LocalAssociationIntentCreator
 import com.solana.mobilewalletadapter.clientlib.scenario.LocalAssociationScenario
@@ -43,6 +41,7 @@ import com.solana.mobilewalletadapter.clientlib.scenario.Scenario
 import com.solana.networking.Commitment
 import com.solana.networking.HttpNetworkingRouter
 import com.solana.networking.RPCEndpoint
+import com.solana.networking.serialization.format.Borsh
 import com.solana.networking.serialization.serializers.solana.AnchorInstructionSerializer
 import com.solana.programs.SystemProgram
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -87,7 +86,7 @@ class HomeViewModel @Inject constructor(
         Semaphore(1) // allow only a single MWA connection at a time
 
     @OptIn(ExperimentalUnsignedTypes::class)
-    private val specialNumber = uintArrayOf(1u, 7u, 33u, 37u, 57u, 69u, 75u, 100u)
+    private val specialNumber = uintArrayOf(1u, 7u, 33u, 57u, 69u, 75u, 100u)
 
     init {
         _solana.value = Solana(HttpNetworkingRouter(RPCEndpoint.devnetSolana))
@@ -212,7 +211,7 @@ class HomeViewModel @Inject constructor(
                 val content = "{\"attributes\":{\"gm\":\"${user.gmCount}\",\"date\":\"$date\"},\"name\":\"special number ${user.gmCount}\",\"image\":\"$image\",\"delegated\":true,\"receiverAddress\":\"$receiver\"}"
                 val body = RequestBody.create(mediaType, content)
                 val request = Request.Builder()
-                    .url("https://dev.underdogprotocol.com/v2/projects/3/nfts")
+                    .url("https://dev.underdogprotocol.com/v2/projects/4/nfts")
                     .post(body)
                     .addHeader("accept", "application/json")
                     .addHeader("content-type", "application/json")
@@ -289,16 +288,6 @@ class HomeViewModel @Inject constructor(
             }
         })
     }
-
-    fun tweet(tweet: String) {
-        _uiState.update {
-            it.copy(
-                tweetText = tweet
-            )
-        }
-    }
-
-
 
     fun sendGm(sender: StartActivityForResultSender) = viewModelScope.launch {
         _solana.value?.let { solana ->

@@ -28,9 +28,18 @@ describe("gm-maker", () => {
           program.programId
       );
 
-    const userAccount = await program.account.user.fetch(userPDA1);
+    
 
+    const [counterPDA, counterBump] = anchor.web3.PublicKey.findProgramAddressSync(
+          [
+              encode("gm_counter"),
+          ],
+          program.programId
+      );
+    const userAccount = await program.account.user.fetch(userPDA1);
+    const counterAccount = await program.account.counter.fetch(counterPDA);
     console.log(userAccount)
+    console.log(counterAccount)
 
   })
 
