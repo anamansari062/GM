@@ -86,7 +86,7 @@ class HomeViewModel @Inject constructor(
         Semaphore(1) // allow only a single MWA connection at a time
 
     @OptIn(ExperimentalUnsignedTypes::class)
-    private val specialNumber = uintArrayOf(1u, 7u, 33u, 57u, 69u, 75u, 100u)
+    private val specialNumber = uintArrayOf(1u, 7u, 33u, 69u, 75u, 100u)
 
     init {
         _solana.value = Solana(HttpNetworkingRouter(RPCEndpoint.devnetSolana))
@@ -442,7 +442,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getGmCountUser(): UInt {
+     private suspend fun getGmCountUser(): UInt {
         val user = fetchUser()
         return if (user != null) {
             Log.d(TAG, "Gm count of user: ${user.gmCount}")
@@ -463,8 +463,9 @@ class HomeViewModel @Inject constructor(
             try {
                 val serializer =
                     SolanaAccountSerializer((User.serializer()))
-                val account = solana.api.getAccountInfo(serializer, getUserPDA()).getOrThrow()
+                val account = solana.api.getAccountInfo(serializer, getUserPDA(), commitment = Commitment.RECENT).getOrThrow()
                 if (account != null) {
+                    Log.d(TAG, "User: ${account.data}")
                     return account.data!!
                 }
                 else {

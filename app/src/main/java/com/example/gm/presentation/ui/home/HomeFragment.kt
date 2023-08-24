@@ -141,6 +141,7 @@ class HomeFragment : Fragment() {
                         requireView().showSnackbar(
                             it,
                         )
+                        uiState.error = null
                     }
 
                     uiState.gmCurrentCount?.let {
@@ -164,6 +165,7 @@ class HomeFragment : Fragment() {
                             uiState.specialGm = null
                             alertDialog.dismiss()
                         }
+                        uiState.specialGm = null
                     }
                     uiState.nft?.let { nft ->
                         requireView().showSnackbarWithAction("Successfully Minted", "Tweet") {

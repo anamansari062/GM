@@ -9,7 +9,7 @@ data class HomeState(
     val isAuthorized: Boolean = false,
     var wallet: Wallet? = null,
     val balance: BigDecimal = BigDecimal(0),
-    val error: String? = null,
+    var error: String? = null,
     var transactionID: String? = null,
     val texts: Texts = Texts(),
     var specialGm: UInt? = null,
