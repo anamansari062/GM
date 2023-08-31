@@ -146,7 +146,7 @@ class HomeFragment : Fragment() {
 
                     uiState.gmCurrentCount?.let {
                         binding.gmCountTv.visibility = View.VISIBLE
-                        binding.gmCountTv.text = getString(R.string.gm_count_text, it.toString())
+                        binding.gmCountTv.text = getString(R.string.gm_count_text, (it+1u).toString())
                     }
 
                     uiState.specialGm?.let {
@@ -170,11 +170,20 @@ class HomeFragment : Fragment() {
                     uiState.nft?.let { nft ->
                         requireView().showSnackbarWithAction("Successfully Minted", "Tweet") {
                             val tweetText =
-                                "Said the special gm! Minted a cool nft on gm app"
+                                "Said the ${nft.attributes.gm} gm today! Minted a cool nft on gm app"
                             URLEncoder.encode(tweetText, "UTF-8")
                             requireContext().openInBrowser("https://twitter.com/intent/tweet?text=$tweetText")
                         }
                         uiState.nft = null
+                    }
+                    uiState.isLoading.let {
+                        if (it) {
+                            binding.homeProgressBar.visibility = View.GONE
+                            binding.gmButton.visibility = View.VISIBLE
+                        } else {
+                            binding.gmButton.visibility = View.GONE
+                            binding.homeProgressBar.visibility = View.VISIBLE
+                        }
                     }
                 }
             }

@@ -20,6 +20,7 @@ import com.example.gm.domain.use_case.solana_rpc.sign_transaction.SendTransactio
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.BalanceUseCase
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.GetLatestBlockhashUseCase
 import com.example.gm.domain.use_case.solana_rpc.transactions_usecase.RequestAirdropUseCase
+import com.example.gm.presentation.utils.Counter
 import com.example.gm.presentation.utils.CreateNft
 import com.example.gm.presentation.utils.Nft
 import com.example.gm.presentation.utils.StartActivityForResultSender
@@ -144,8 +145,8 @@ class HomeViewModel @Inject constructor(
 
     // Fetches the gm count and checks if it is a special number
     @OptIn(ExperimentalUnsignedTypes::class)
-    private suspend fun checkSpecialNumber() {
-        val count = getGmCountUser()
+    private suspend fun checkSpecialNumber(count: UInt?) {
+//        val count = getGmCountUser()
         if(count in specialNumber){
             _uiState.update {
                 it.copy(
@@ -197,6 +198,11 @@ class HomeViewModel @Inject constructor(
 
     // Mints an NFT for special rewards
     fun mintNft() = viewModelScope.launch {
+        _uiState.update {
+            it.copy(
+                isLoading = true
+            )
+        }
 
         withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
             val user = fetchUser()
@@ -224,7 +230,8 @@ class HomeViewModel @Inject constructor(
                         e.printStackTrace()
                         _uiState.update {
                             it.copy(
-                                error = e.message ?: ""
+                                error = e.message ?: "",
+                                isLoading = false
                             )
                         }
                     }
@@ -240,6 +247,11 @@ class HomeViewModel @Inject constructor(
                         } else {
                             // Handle non-successful response
                             println("Request not successful: ${response.code}")
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false
+                                )
+                            }
                         }
                     }
                 })
@@ -264,7 +276,8 @@ class HomeViewModel @Inject constructor(
                 e.printStackTrace()
                 _uiState.update {
                     it.copy(
-                        error = e.message ?: ""
+                        error = e.message ?: "",
+                        isLoading = false
                     )
                 }
             }
@@ -276,7 +289,8 @@ class HomeViewModel @Inject constructor(
                     val nft = gson.fromJson(responseBody, Nft::class.java)
                     _uiState.update {
                         it.copy(
-                            nft = nft
+                            nft = nft,
+                            isLoading = false
                         )
                     }
                     Log.d(TAG, "Minted NFT Details: $nft")
@@ -284,12 +298,22 @@ class HomeViewModel @Inject constructor(
                 } else {
                     // Handle non-successful response
                     println("Request not successful: ${response.code}")
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false
+                        )
+                    }
                 }
             }
         })
     }
 
     fun sendGm(sender: StartActivityForResultSender) = viewModelScope.launch {
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+            )
+        }
         _solana.value?.let { solana ->
             withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
                 getLatestBlockhash(solana).let { blockHash ->
@@ -337,6 +361,8 @@ class HomeViewModel @Inject constructor(
                                                 )
                                             }
 
+                                            val count = fetchCounter()
+                                            val user = fetchUser()
                                             // Sending transaction object
                                             when (
                                                 val message = sendTransactionUseCase(
@@ -359,15 +385,23 @@ class HomeViewModel @Inject constructor(
                                                                 _uiState.update {
                                                                     it.copy(
                                                                         transactionID = transactionID,
+                                                                        isLoading = true
                                                                     )
                                                                 }
-                                                                checkSpecialNumber()
+                                                                if (count != null) {
+                                                                    checkSpecialNumber(count+1u)
+                                                                }
+                                                                else {
+                                                                    checkSpecialNumber(1u)
+                                                                }
+                                                                getGmCountUser()
                                                             }
                                                             .onFailure {
                                                                 if (it.message.toString().contains("0x1770")){
                                                                     _uiState.update {
                                                                         it.copy(
                                                                             error = "You have already said alot of GM today",
+                                                                            isLoading = false
                                                                         )
                                                                     }
                                                                     Log.d(
@@ -384,6 +418,7 @@ class HomeViewModel @Inject constructor(
                                                                     _uiState.update {
                                                                         it.copy(
                                                                             error = it.toString(),
+                                                                            isLoading = false
                                                                         )
                                                                     }
                                                                 }
@@ -406,6 +441,12 @@ class HomeViewModel @Inject constructor(
 
                                                 is Resource.Error -> {
                                                     Log.e(TAG, message.message.toString())
+                                                    _uiState.update {
+                                                        it.copy(
+                                                            error = message.message.toString(),
+                                                            isLoading = false
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -463,7 +504,7 @@ class HomeViewModel @Inject constructor(
             try {
                 val serializer =
                     SolanaAccountSerializer((User.serializer()))
-                val account = solana.api.getAccountInfo(serializer, getUserPDA(), commitment = Commitment.RECENT).getOrThrow()
+                val account = solana.api.getAccountInfo(serializer, getUserPDA(), commitment = Commitment.FINALIZED).getOrThrow()
                 if (account != null) {
                     Log.d(TAG, "User: ${account.data}")
                     return account.data!!
@@ -474,6 +515,29 @@ class HomeViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.d(TAG, "Error while user: ${e}")
+                return null
+            }
+
+        }
+        return null
+    }
+
+    private suspend fun fetchCounter(): UInt? {
+        _solana.value?.let { solana ->
+            try {
+                val serializer =
+                    SolanaAccountSerializer((Counter.serializer()))
+                val account = solana.api.getAccountInfo(serializer, getCounterPDA(), commitment = Commitment.FINALIZED).getOrThrow()
+                if (account != null) {
+                    Log.d(TAG, "Counter: ${account.data}")
+                    return account.data?.gm
+                }
+                else {
+                    Log.d(TAG, "Counter: null")
+                    return null
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "Error while counter: ${e}")
                 return null
             }
 

@@ -91,6 +91,16 @@
         app:cornerRadius="1500dp"
         android:layout_gravity="center_horizontal" />
 
+    <ProgressBar
+        android:id="@+id/home_progress_bar"
+        android:layout_width="135dp"
+        android:layout_height="147dp"
+        android:gravity="center"
+        android:padding="16dp"
+        android:layout_marginTop="50dp"
+        android:visibility="gone"
+        android:layout_gravity="center_horizontal"/>
+
     <TextView
         android:id="@+id/gm_count_tv"
         android:layout_width="wrap_content"
@@ -114,6 +124,7 @@
 <!--        android:visibility="invisible"-->
 <!--        android:contentDescription="@string/to_refresh_gm_count"-->
 <!--        android:src="@drawable/baseline_refresh_24" />-->
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/airdrop_btn"
